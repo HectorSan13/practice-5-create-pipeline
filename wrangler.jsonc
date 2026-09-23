@@ -50,5 +50,12 @@
 	"compatibility_date": "2026-09-16",
 	"observability": {
 		"enabled": true
-	}
+	},
+	"d1_databases": [
+		{
+		"binding": "p6",
+		"database_name": "practica6",
+		"namespace_id": "951907b9-faba-4105-bda4-dd488230cdd0"
+		}
+	]
 }

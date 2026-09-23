@@ -11,9 +11,27 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-export default {
+/* export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		return new Response("Hello from practice 5 pipeline!");
 		//return new Response("Hello World!");
 	},
+} satisfies ExportedHandler<Env>; */
+
+
+
+export interface Env {
+	p6: D1Database;
+}
+
+export default {
+	async fetch(request, env, ctx): Promise<Response> {
+		const data = await this.queryDatabse(env.p6);
+		return Response.json({ message: "Hello world 3!", dbData: data });
+	},
+
+	async queryDatabse(db: D1Database) {
+		const { results } = await db.prepare("SELECT * FROM Users");.all();
+	return results;
+}
 } satisfies ExportedHandler<Env>;

@@ -26,12 +26,12 @@ export interface Env {
 
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
-		const data = await this.queryDatabse(env.p6);
+		const data = await this.queryDatabase(env.p6);
 		return Response.json({ message: "Hello world 3!", dbData: data });
 	},
 
-	async queryDatabse(db: D1Database) {
-		const { results } = await db.prepare("SELECT * FROM Users");.all();
-	return results;
-}
+	async queryDatabase(db: D1Database) {
+		const { results } = await db.prepare("SELECT * FROM Users").all();
+		return results;
+	}
 } satisfies ExportedHandler<Env>;

@@ -1,4 +1,4 @@
-name: Deploy Worker
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,12 +6,13 @@ on:
       - main
 
 jobs:
-  test-and-deploy:
+  # Job 1: Build, Pruebas con Cobertura, Artefacto y Deploy a Staging
+  test-and-deploy-staging:
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -21,14 +22,46 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
-      #- name: Run unit tests
-      #  run: npm test -- --run
+      - name: Build project
+        run: npm run build
 
-      - name: Deploy to Cloudflare Workers
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Publish coverage artifact (UAT Report)
+        uses: actions/upload-artifact@v4
+        with:
+          name: uat-coverage-report
+          path: coverage/
+
+      - name: Deploy to Cloudflare Workers (Staging)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+  # Job 2: Deploy al entorno de Producción
+  deploy-production:
+    needs: test-and-deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Deploy to Cloudflare Workers (Production)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --name cool-sky-8509-prod
